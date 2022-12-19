@@ -3,12 +3,86 @@
 #include "tree_etu.h"
 #include <stdlib.h>
 
+char * afficheBit(int code,int  nbBits)
+{
+
+
+        static char tr[33];
+
+        for (int i=(nbBits-1); i>=0; i--)
+        {
+                       
+                {
+                        tr[i] = (code % 2 == 0 ? '0' : '1');
+                        code /= 2;
+                }
+             
+        }
+        tr[nbBits]='\0';
+
+        return tr;
+}
+
+void prefixe(struct byteCoding indexedCodeTable[256])
+
+                    {int test;
+			   
+                             		printf(" test de préfixe : \n");
+                        for (int i=0; i<256;i++)
+
+                        {
+						if (indexedCodeTable[i].occurrence!=0)
+                            {
+				char * chaine1 = afficheBit(indexedCodeTable[i].huffmanCode,indexedCodeTable[i].nbBits);
+				char vchaine1[32]; 
+				strcpy(chaine1,vchaine1);
+				for (int j=i;j<256;j++)
+				{
+                            		if (indexedCodeTable[j].occurrence!=0)
+                            	{
+			 	char * chaine2 =  afficheBit(indexedCodeTable[j].huffmanCode,indexedCodeTable[j].nbBits);
+				
+			       	char vchaine2[32];
+			strcpy(chaine2,vchaine2);	
+
+				int p=0;
+				int k=0;
+				int taille1=strlen(chaine1);
+				int taille2=strlen(chaine2);
+				while ((vchaine1[p]!='\0' && vchaine2[p]!='\0') && vchaine2[p]!=vchaine1[p])
+				{
+				
+					p++;
+				}
+				 if(p<taille1-1 || p<taille2-1)
+                                        {
+                                                k=1;
+                                                printf(" (k) : %c ,(k) : %c \n",vchaine1[p],vchaine2[p]);
+                                        }
+				test=k;
+                            	}
+				}
+
+                            }
+
+
+                        }
+			if(test==1)
+			{
+			printf("\n erreur de préfixe !\n");
+			}
+			else
+			{
+				printf("\n aucun n'est préfixe de l'autre !\n");
+			}
+		    }
 void tree_resetByteOccurrence( struct byteCoding indexedCodeTable[256] )
                     {
                     for (int i =0; i<256; i++)
                     {
                         indexedCodeTable[i].occurrence=0;
-                    }
+			indexedCodeTable[i].byte=(t_byte);
+		    }
                     }
 void tree_resetByteCoding( struct byteCoding indexedCodeTable[256] )
                     {
@@ -35,16 +109,17 @@ void tree_countByteOccurrence( const t_byte * buffer, int size, struct byteCodin
 void tree_displayByteCoding(struct byteCoding indexedCodeTable[256])
 
                     {
+			     printf("occur codHuff     nbits           bytes       codeHuffbinaire\n");
                         for (int i=0; i<256;i++)
 
                         {
                             if (indexedCodeTable[i].occurrence!=0)
                             {
-                            printf( " ocur = %d\n", indexedCodeTable[i].occurrence);
-                            printf( " codhuff = %d\n", indexedCodeTable[i].huffmanCode);
-                            printf( " nbits = %d\n", indexedCodeTable[i].nbBits);
-                            printf( " bytes = %c\n", indexedCodeTable[i].byte); 
-                            }
+			  char  * s =afficheBit(indexedCodeTable[i].huffmanCode,indexedCodeTable[i].nbBits); 
+                            printf( " %2d %6d %12d %16c %8s\n", indexedCodeTable[i].occurrence, indexedCodeTable[i].huffmanCode, indexedCodeTable[i].nbBits,indexedCodeTable[i].byte,s);
+                            
+			    
+			    }
                             }
                            
 
@@ -78,16 +153,17 @@ struct tree_node * tree_createCodingNode ( struct tree_node * left,
                         
                             struct tree_node * tonp = (struct tree_node *)malloc(sizeof(struct tree_node));
                             int * v =  (int*)malloc(sizeof(int));
+
                             if (tonp==NULL || v ==NULL)
                             {
                                     perror("Unable to allocate memory");
                                     return NULL;      
                             }
-                            
-                             int p = *(left->valeur_noeud) + *(right->valeur_noeud);
-                            *v=p;
+			    *v=0;
+
+                            if (left!=NULL && left->valeur_noeud!=NULL) *v+=*(left->valeur_noeud);
+			    if (right!=NULL && right->valeur_noeud!=NULL) *v+=*(right->valeur_noeud);
                             struct tree_node nd;
-                           
                             nd.ndpere=NULL;
                             nd.valeur_noeud=v;
                             nd.ndfgauche=left;
@@ -127,7 +203,12 @@ static int compare(s_node * s, void * param)
             }
         }
 
-        
+	printf("list: \n");
+        for (s_node * node=l; node != NULL; node = list_next(node))
+	{
+		printf("| %d ", *GET_LIST_DATA(node, struct tree_node*)->valeur_noeud);
+	}
+	printf("|\n");
         
         
         struct tree_node  * local_fg;
@@ -141,7 +222,7 @@ static int compare(s_node * s, void * param)
             local_fd = GET_LIST_DATA(l,struct tree_node*);
                 l=list_headRemove(l);
 
-            arbre =  tree_createCodingNode(local_fd,local_fg); 
+            arbre =  tree_createCodingNode(local_fg,local_fd); 
             list_orderedAppend(&l,&compare,arbre); 
             
         }
@@ -152,8 +233,10 @@ static int compare(s_node * s, void * param)
             printf("%d \n \n",*GET_LIST_DATA(ptr,struct tree_node*)->valeur_noeud);
         
             ptr=list_next(ptr);
+	}
+	   if(arbre->ndfgauche==NULL && arbre->ndfdroite==NULL)
+	   arbre=tree_createCodingNode(arbre,NULL);
 
-        }
         list_destroy(l);
         
         
@@ -162,35 +245,70 @@ static int compare(s_node * s, void * param)
 
 void tree_display( struct tree_node * root, int level ) 
 {
-    if (root==NULL)return ;
-    for (int i=0;i<level;i++)
-    {
-        printf("--");
-    }
-    if ((root->ndfgauche)==NULL && (root->ndfdroite)==NULL)return;
-        printf("%d \n ",*(root->valeur_noeud));
+    if (root==NULL)return;
+    
+   
         
-       tree_display(root->ndfgauche,level+1);
-       tree_display(root->ndfdroite,level+1);  
-
-
-
        
+   tree_display(root->ndfdroite,level+1);
+   printf("%*s%d\n ",(level)*(5),"",*(root->valeur_noeud));   
+   tree_display(root->ndfgauche,level+1);
+         
 }
 void tree_destroy( struct tree_node * root )
 {
     if (root==NULL) return;
+	
+     
     
+
     if ((root->ndfgauche)==NULL && (root->ndfdroite)==NULL)
     {
-        free(root->valeur_noeud);
-        tree_destroy(root->ndfgauche);
-        tree_destroy(root->ndfdroite);
-        
+	printf("\ndestruction pere : %d \n",*(root->valeur_noeud));
+	return;
+    	    
     }
-    free(root);
+    else{
+	    free(root);
+    	printf("\n destruction noeud f gauche \n");
+        tree_destroy(root->ndfgauche);
+	printf("\ndestruction noeud f droite\n");
+        tree_destroy(root->ndfdroite);
+    }	
+    
+   
 
 }
 
 
+
+
+
+
+void tree_buildHuffmanCode(struct tree_node * root, int level, int code)
+{
+	 	
+	if(root==NULL)
+		return ;
+	if((root->ndfgauche==NULL) && (root->ndfdroite)==NULL)
+	
+	{
+	struct byteCoding * ad = (struct byteCoding *)(root->valeur_noeud);	
+		ad->huffmanCode = code;
+	       	ad->nbBits=level;
+		
+	       	return;
+	}	 
+		
+	
+	
+		code = code<<1;
+		level++;
+		
+		tree_buildHuffmanCode(root->ndfgauche,level,code);
+	 	tree_buildHuffmanCode(root->ndfdroite,level,code+1);
+	
+	
+
+}
 

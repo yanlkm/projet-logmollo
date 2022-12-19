@@ -1,10 +1,9 @@
 #include "list.h"
-#include "stdio.h"
+#include <stdio.h>
 #include "tree_etu.h"
-#include "string.h"
-#include "stdlib.h"
-
-
+#include <string.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 
@@ -17,7 +16,7 @@ int main()
 
     
 
-    const t_byte * chaine ="mmmarieeeeeeiiiiiiaaaallloooo";
+    const t_byte * chaine ="eeeeeeeeeeeeeeeeeeeeiiiiiiiiiipppppznnnnn";
     int size = strlen(chaine);
     struct byteCoding tab[256];
 
@@ -25,7 +24,7 @@ int main()
     tree_resetByteCoding( tab );
 
     tree_countByteOccurrence( chaine, size, tab );
-    tree_displayByteCoding(tab);
+    
     printf("\n");
    
     
@@ -84,15 +83,20 @@ int main()
    
    struct tree_node *  truc = tree_create(tab);
 
-   int n=0;
-tree_destroy(truc);
-   tree_display(truc,n);
+   int n=0,l=0;
 
-   
+  
+   tree_buildHuffmanCode(truc,0,0);
+   tree_displayByteCoding(tab);
+   tree_display(truc,0);
+   afficheBit(2,3);
+   prefixe(tab);
+   tree_destroy(truc);
 
 
-   
+   t_byte * b = construction_bloc(tab);
 
+	printf("\n %d \n %d \n",b);	
     
     
     
